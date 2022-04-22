@@ -27,32 +27,47 @@ impl CGOL {
             buff,
             color: 0xFFFFFFFF,
         }
-    }
+    }   
     pub fn randomise(&mut self) {
-        for i in 0..self.cells.len() {
-            self.cells[i] = if random::<f32>() < 0.5 {
-                Cell::ALIVE
-            } else {
-                Cell::DEAD
-            };
+        for i in 1..self.height - 1{
+            for j in 1..self.width - 1{
+                if random::<f32>() > 0.5 {
+                    self.cells[(i * self.width + j) as usize] = Cell::ALIVE
+                }
+            }
         }
     }
 
-    pub fn draw_at(&mut self, x: u32, y: u32, state: u8) {
-        let index = (y * self.width + x) as usize;
-        self.cells[index] = state;
+    pub fn draw_at(&mut self, x_position : u32, y_position: u32, state: u8, noise: u32) {
+        for _ in 0..noise{
+            let x = ((random::<f32>() * -20.0 + 15.0) as u32)  + x_position;
+            let y = ((random::<f32>() * -20.0 + 15.0) as u32)  + y_position;
+            if x > 1 && y > 1 && x < self.width - 1 && y < self.height - 1 {
+                let index = (y * self.width + x) as usize;
+                self.cells[index] = state;
+            }
+        }
+
     }
     pub fn generate_draw_buffer(&mut self) -> Vec<u32> {
         let buffer: Vec<u32> = vec![0; (self.width * &self.height) as usize];
         buffer
     }
     pub fn draw_on_buffer(&mut self, mut buff: Vec<u32>) -> Vec<u32> {
-        let mut i = 0;
-        for cell in self.cells.iter() {
+        for (i,cell) in self.cells.iter().enumerate() {
             if Cell::ALIVE == *cell {
                 buff[i] = self.color;
             }
-            i += 1;
+        }
+        buff
+    }
+    pub fn draw_and_clear_buffer(&mut self, mut buff: Vec<u32>) -> Vec<u32> {
+        for (i,cell) in self.cells.iter().enumerate() {
+            if Cell::ALIVE == *cell {
+                buff[i] = self.color;
+            }else{
+                buff[i] = 0;
+            }
         }
         buff
     }
@@ -84,5 +99,11 @@ impl CGOL {
             }
         }
         mem::swap(&mut self.cells, &mut self.buff);
+    }
+    pub fn clear(&mut self){
+        for i in 0..self.cells.len() {
+            self.cells[i] = Cell::DEAD;
+            self.buff[i] = Cell::DEAD;
+        }
     }
 }
